@@ -1,0 +1,17 @@
+name: Validate GCI build
+on:
+  push:
+    branches: [main]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 build.py
+      - name: Validate required modules
+        run: |
+          grep -q "gci-live-map-script" dist/index.html
+          grep -q "gci-timesheet-upgrade-js" dist/index.html
+          grep -q "gci-face-login-js" dist/index.html
+          grep -q "gci-gps-gate-js" dist/index.html
+          test -s dist/index.html
