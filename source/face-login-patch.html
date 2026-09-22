@@ -1,0 +1,38 @@
+<style id="gci-face-login-css">
+#faceGate{position:fixed;inset:0;z-index:99999;background:#f5f6fb;display:none;align-items:center;justify-content:center;padding:24px;font-family:Poppins,sans-serif}
+#faceGate.on{display:flex}.fgCard{width:min(420px,100%);background:#fff;border-radius:26px;padding:22px;box-shadow:0 18px 50px #10105e1c;text-align:center}.fgCard h2{color:#11125b;margin:8px 0}.fgCard p{color:#7b7d8e;font-size:13px}.fgVideo{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:22px;background:#111;transform:scaleX(-1)}.fgBtns{display:grid;gap:10px;margin-top:14px}.fgBtn{border:0;border-radius:15px;padding:14px;font:700 14px Poppins;background:#11125b;color:#fff}.fgBtn.secondary{background:#eef0f8;color:#11125b}.fgStatus{font-size:12px;color:#c33;margin-top:8px}
+</style>
+<div id="faceGate"><div class="fgCard"><h2>Face Verification</h2><p>Look at the front camera and take a clear photo to continue.</p><video id="fgVideo" class="fgVideo" autoplay playsinline muted></video><canvas id="fgCanvas" hidden></canvas><div class="fgBtns"><button id="fgTake" class="fgBtn">Take Photo</button><button id="fgRetry" class="fgBtn secondary" hidden>Retake Photo</button></div><div id="fgStatus" class="fgStatus"></div></div></div>
+<script id="gci-face-login-js">
+(function(){
+ let stream=null,pending=false;
+ const gate=document.getElementById('faceGate'),video=document.getElementById('fgVideo'),canvas=document.getElementById('fgCanvas'),take=document.getElementById('fgTake'),retry=document.getElementById('fgRetry'),status=document.getElementById('fgStatus');
+ async function stop(){if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
+ async function openGate(){
+  gate.classList.add('on');status.textContent='';take.hidden=false;retry.hidden=true;
+  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});video.srcObject=stream}
+  catch(e){status.textContent='Camera permission is required for staff verification.'}
+ }
+ function closeGate(){stop();gate.classList.remove('on')}
+ take.onclick=async()=>{
+  if(!video.videoWidth){status.textContent='Camera is not ready yet.';return}
+  canvas.width=video.videoWidth;canvas.height=video.videoHeight;canvas.getContext('2d').drawImage(video,0,0);
+  pending=false;status.style.color='#168b50';status.textContent='Photo captured ✓';take.hidden=true;retry.hidden=false;
+  sessionStorage.setItem('gci_face_photo_captured','1');
+  setTimeout(closeGate,650);
+ };
+ retry.onclick=()=>{status.textContent='';take.hidden=false;retry.hidden=true;sessionStorage.removeItem('gci_face_photo_captured')};
+ document.addEventListener('click',function(e){
+   const b=e.target.closest('button'); if(!b)return;
+   if((b.textContent||'').trim().toLowerCase()==='sign in'){pending=true;sessionStorage.removeItem('gci_face_photo_captured')}
+ },true);
+ const obs=new MutationObserver(()=>{
+   if(!pending)return;
+   const text=(document.body.innerText||'').toLowerCase();
+   const loginVisible=[...document.querySelectorAll('button')].some(b=>(b.textContent||'').trim().toLowerCase()==='sign in' && b.offsetParent!==null);
+   if(!loginVisible && !text.includes('invalid login credentials') && !text.includes('email not confirmed')){pending=false;openGate()}
+ });
+ obs.observe(document.body,{subtree:true,childList:true,attributes:true});
+ window.gciFaceVerify=openGate;
+})();
+</script>
