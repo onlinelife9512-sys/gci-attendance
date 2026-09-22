@@ -1,0 +1,37 @@
+<style id="gci-gps-gate-css">
+#gciGpsGate{position:fixed;inset:0;z-index:100000;background:rgba(8,10,30,.58);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;font-family:Poppins,sans-serif}
+#gciGpsGate.on{display:flex}.gpsSheet{width:min(520px,100%);background:#fff;border-radius:28px 28px 0 0;padding:24px 22px calc(24px + env(safe-area-inset-bottom));box-shadow:0 -18px 60px rgba(0,0,0,.18)}
+.gpsIcon{width:62px;height:62px;border-radius:20px;background:#eef0ff;color:#11125b;display:grid;place-items:center;font-size:31px;margin-bottom:15px}.gpsSheet h2{margin:0 0 7px;color:#11125b;font-size:22px}.gpsSheet p{margin:0 0 18px;color:#77798c;font-size:13px;line-height:1.55}
+.gpsBtn{width:100%;border:0;border-radius:16px;padding:15px;background:#11125b;color:#fff;font:700 14px Poppins}.gpsHelp{font-size:11px;color:#999bad;text-align:center;margin-top:11px}
+</style>
+<div id="gciGpsGate"><div class="gpsSheet"><div class="gpsIcon">⌖</div><h2>Turn on Location</h2><p>GCI Attendance needs your live GPS location before Punch In, Break or Clock Out. Turn on Location and allow precise location access.</p><button class="gpsBtn" id="gciGpsTurnOn">Turn On Location</button><div class="gpsHelp" id="gciGpsHelp">After enabling GPS, return here. We will check again automatically.</div></div></div>
+<script id="gci-gps-gate-js">
+(function(){
+ const gate=document.getElementById('gciGpsGate'),btn=document.getElementById('gciGpsTurnOn'),help=document.getElementById('gciGpsHelp');
+ let retryTimer=null;
+ function hide(){gate.classList.remove('on');if(retryTimer){clearInterval(retryTimer);retryTimer=null}}
+ function show(msg){if(msg)help.textContent=msg;gate.classList.add('on');if(!retryTimer)retryTimer=setInterval(check,2500)}
+ function check(){
+  if(!navigator.geolocation){show('Location is not supported on this device/browser.');return}
+  navigator.geolocation.getCurrentPosition(()=>hide(),e=>{
+   if(e.code===1)show('Allow Location permission and enable Precise location.');
+   else show('GPS appears to be off. Turn on Location, then return to the app.');
+  },{enableHighAccuracy:true,timeout:5000,maximumAge:5000});
+ }
+ btn.onclick=()=>{
+  check();
+  setTimeout(()=>{help.textContent='If Android does not open settings automatically, swipe down Quick Settings and turn Location ON, then return here.'},700);
+ };
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)check()});
+ window.addEventListener('focus',check);
+ document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const t=(b.textContent||'').trim().toLowerCase();
+  if(t.includes('punch in')||t==='break'||t.includes('clock out')){
+   if(!navigator.geolocation){e.preventDefault();e.stopImmediatePropagation();show();return}
+   navigator.geolocation.getCurrentPosition(()=>{},()=>{e.preventDefault();e.stopImmediatePropagation();show()},{enableHighAccuracy:true,timeout:3500,maximumAge:3000});
+  }
+ },true);
+ setTimeout(check,700);
+})();
+</script>
