@@ -1,0 +1,60 @@
+<style id="gci-timesheet-upgrade-css">
+#timesheetUpgrade{font-family:Poppins,sans-serif;color:#15164f;padding:4px 0 88px}
+.tsTop{display:flex;align-items:center;justify-content:space-between;margin:8px 0 14px}.tsTop h2{margin:0;font-size:25px}.tsMonth{font-size:13px;font-weight:700;color:#74768b}
+.tsTabs{display:grid;grid-template-columns:1fr 1fr;background:#f1f3f8;border-radius:14px;padding:4px;margin-bottom:14px}.tsTab{border:0;background:transparent;border-radius:11px;padding:10px;font:700 13px Poppins;color:#77798e}.tsTab.active{background:#fff;color:#11125b;box-shadow:0 3px 12px rgba(16,16,94,.1)}
+.tsWeek{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.tsDay{border:0;background:transparent;padding:7px 1px;border-radius:12px;font:600 10px Poppins;color:#8a8c9e}.tsDay b{display:block;font-size:13px;color:#28295b;margin-top:3px}.tsDay.active{background:#11125b;color:#fff}.tsDay.active b{color:#fff}
+.tsCard{background:#fff;border:1px solid #e9eaf0;border-radius:20px;padding:16px;margin-top:12px;box-shadow:0 8px 24px rgba(20,22,70,.06)}.tsCard h3{font-size:14px;margin:0 0 12px}.tsGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.tsMetric small{display:block;color:#8a8c9c;font-size:10px}.tsMetric strong{display:block;margin-top:3px;font-size:14px}.tsTotal{display:flex;justify-content:space-between;align-items:center}.tsTotal strong{font-size:20px}.tsLink,.tsRow{width:100%;border:0;background:transparent;font:700 12px Poppins;color:#11125b;text-align:left}.tsLink{padding:13px 0 0;border-top:1px solid #eee;margin-top:13px}.tsRow{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f0f1f5}.tsRow span:last-child{color:#85879a}.tsBack{border:0;background:#eef0f7;border-radius:12px;padding:9px 12px;font:700 12px Poppins;color:#11125b}
+.tsEmpty{font-size:12px;color:#8b8d9d;padding:8px 0}.tsHidden{display:none!important}
+</style>
+<script id="gci-timesheet-upgrade-js">
+(function(){
+ const oldShow=window.showPage;
+ function fmt(ms){ms=Math.max(0,ms||0);let s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}
+ function tm(v){if(!v)return '—';return new Date(v).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}
+ function dayISO(d){return d.toISOString().slice(0,10)}
+ function getClient(){return window.sb||window.supabaseClient||window.supabase}
+ async function userId(){try{let c=getClient();if(!c?.auth?.getUser)return null;let r=await c.auth.getUser();return r?.data?.user?.id||null}catch(e){return null}}
+ async function rows(from,to){
+   let c=getClient(),uid=await userId(); if(!c?.from||!uid)return [];
+   let q=await c.from('gci_staff_attendance_sessions').select('*').eq('user_id',uid).gte('attendance_date',from).lte('attendance_date',to).order('attendance_date',{ascending:true});
+   return q.data||[];
+ }
+ async function breaks(sessionId){
+   let c=getClient();if(!c?.from||!sessionId)return [];
+   let q=await c.from('gci_staff_break_logs').select('*').eq('session_id',sessionId).order('started_at',{ascending:true});return q.data||[];
+ }
+ async function calc(s){if(!s)return {worked:0,breakMs:0};let end=s.clock_out?new Date(s.clock_out):new Date();let total=end-new Date(s.clock_in);let bs=await breaks(s.id);let bm=bs.reduce((a,b)=>a+((b.ended_at?new Date(b.ended_at):new Date())-new Date(b.started_at)),0);return {worked:Math.max(0,total-bm),breakMs:bm,bs}}
+ function host(){
+   let page=document.getElementById('timesheet')||document.querySelector('[data-page="timesheet"]')||document.getElementById('timesheets');
+   if(!page)return null;let h=page.querySelector('#timesheetUpgrade');if(!h){page.innerHTML='<div id="timesheetUpgrade"></div>';h=page.firstElementChild}return h
+ }
+ let selected=new Date(),mode='daily';
+ async function render(){
+   let h=host();if(!h)return;
+   let y=selected.getFullYear(),m=selected.getMonth(),first=new Date(y,m,1),last=new Date(y,m+1,0);
+   h.innerHTML='<div class="tsTop"><h2>Timesheets</h2><div class="tsMonth">'+selected.toLocaleDateString([],{month:'long',year:'numeric'})+'</div></div><div class="tsTabs"><button class="tsTab '+(mode==='daily'?'active':'')+'" data-mode="daily">Daily</button><button class="tsTab '+(mode==='monthly'?'active':'')+'" data-mode="monthly">Monthly</button></div><div id="tsBody">Loading…</div>';
+   h.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.mode;render()});
+   if(mode==='monthly')return renderMonth(h.querySelector('#tsBody'),first,last);
+   renderDaily(h.querySelector('#tsBody'));
+ }
+ async function renderDaily(body){
+   let start=new Date(selected);start.setDate(selected.getDate()-selected.getDay());let days=[...Array(7)].map((_,i)=>{let d=new Date(start);d.setDate(start.getDate()+i);return d});
+   let all=await rows(dayISO(days[0]),dayISO(days[6]));let total=0;for(let s of all)total+=(await calc(s)).worked;
+   let iso=dayISO(selected),s=all.find(x=>x.attendance_date===iso),c=await calc(s);
+   body.innerHTML='<div class="tsWeek">'+days.map(d=>'<button class="tsDay '+(dayISO(d)===iso?'active':'')+'" data-date="'+dayISO(d)+'">'+d.toLocaleDateString([],{weekday:'short'}).slice(0,2)+'<b>'+d.getDate()+'</b></button>').join('')+'</div><div class="tsCard tsTotal"><span>Weekly total</span><strong>'+fmt(total)+'</strong></div><div class="tsCard"><h3>Tracked Time</h3><div class="tsGrid"><div class="tsMetric"><small>First in</small><strong>'+tm(s?.clock_in)+'</strong></div><div class="tsMetric"><small>Last out</small><strong>'+tm(s?.clock_out)+'</strong></div><div class="tsMetric"><small>Breaks</small><strong>'+fmt(c.breakMs)+'</strong></div><div class="tsMetric"><small>Worked hours</small><strong>'+fmt(c.worked)+'</strong></div></div><button class="tsLink" id="viewDaily">View Daily Timesheet →</button></div><div class="tsCard"><h3>Payroll Hours</h3><div class="tsGrid"><div class="tsMetric"><small>Regular hours</small><strong>'+fmt(Math.min(c.worked,9*3600000))+'</strong></div><div class="tsMetric"><small>Overtime hours</small><strong>'+fmt(Math.max(0,c.worked-9*3600000))+'</strong></div></div></div>';
+   body.querySelectorAll('[data-date]').forEach(b=>b.onclick=()=>{selected=new Date(b.dataset.date+'T12:00:00');render()});body.querySelector('#viewDaily').onclick=()=>detail(body,s,c);
+ }
+ async function detail(body,s,c){
+   body.innerHTML='<button class="tsBack" id="tsBack">← Back</button><div class="tsCard"><h3>Daily Timesheet · '+selected.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'})+'</h3><div class="tsGrid"><div class="tsMetric"><small>First in</small><strong>'+tm(s?.clock_in)+'</strong></div><div class="tsMetric"><small>Last out</small><strong>'+tm(s?.clock_out)+'</strong></div><div class="tsMetric"><small>Breaks</small><strong>'+fmt(c.breakMs)+'</strong></div><div class="tsMetric"><small>Worked hours</small><strong>'+fmt(c.worked)+'</strong></div></div></div><div class="tsCard"><h3>Time entries</h3>'+(s?'<div class="tsRow"><span>Punch In</span><span>'+tm(s.clock_in)+'</span></div>'+(c.bs||[]).map(b=>'<div class="tsRow"><span>Break</span><span>'+tm(b.started_at)+' – '+tm(b.ended_at)+'</span></div>').join('')+'<div class="tsRow"><span>Clock Out</span><span>'+tm(s.clock_out)+'</span></div>':'<div class="tsEmpty">No attendance entry for this date.</div>')+'</div><div class="tsCard"><h3>Payroll Hours</h3><div class="tsRow"><span>Regular hours</span><span>'+fmt(Math.min(c.worked,9*3600000))+'</span></div><div class="tsRow"><span>Overtime</span><span>'+fmt(Math.max(0,c.worked-9*3600000))+'</span></div></div>';
+   body.querySelector('#tsBack').onclick=render;
+ }
+ async function renderMonth(body,first,last){
+   let all=await rows(dayISO(first),dayISO(last)),sum=0,calcs={};for(let s of all){calcs[s.attendance_date]=await calc(s);sum+=calcs[s.attendance_date].worked}
+   body.innerHTML='<div class="tsCard tsTotal"><span>Tracked hours</span><strong>'+fmt(sum)+'</strong></div><div class="tsCard"><h3>'+first.toLocaleDateString([],{month:'long',year:'numeric'})+'</h3>'+Array.from({length:last.getDate()},(_,i)=>{let d=new Date(first.getFullYear(),first.getMonth(),i+1),iso=dayISO(d),s=all.find(x=>x.attendance_date===iso),c=calcs[iso];return '<button class="tsRow" data-month-date="'+iso+'"><span>'+d.toLocaleDateString([],{weekday:'short',month:'short',day:'numeric'})+'</span><span>'+(s?fmt(c.worked):(d.getDay()===0?'Rest Day':'Did not clock in'))+' ›</span></button>'}).join('')+'</div>';
+   body.querySelectorAll('[data-month-date]').forEach(b=>b.onclick=()=>{selected=new Date(b.dataset.monthDate+'T12:00:00');mode='daily';render()});
+ }
+ window.gciOpenTimesheet=render;
+ document.addEventListener('click',e=>{let el=e.target.closest('[data-page="timesheet"],[data-target="timesheet"],a,button');if(el&&(el.textContent||'').trim().toLowerCase()==='timesheet')setTimeout(render,40)},true);
+ const nav=[...document.querySelectorAll('button,a')].find(x=>(x.textContent||'').trim().toLowerCase()==='timesheet');if(nav)nav.addEventListener('click',()=>setTimeout(render,40));
+})();
+</script>
