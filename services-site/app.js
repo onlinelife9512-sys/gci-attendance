@@ -1,0 +1,6 @@
+document.getElementById('year').textContent=new Date().getFullYear();
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('on');io.unobserve(e.target)}}),{threshold:.12});
+document.querySelectorAll('.reveal:not(.on)').forEach(e=>io.observe(e));
+const tilt=document.getElementById('tilt'),visual=document.querySelector('.visual');
+if(matchMedia('(pointer:fine)').matches){visual.addEventListener('mousemove',e=>{const r=visual.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;tilt.style.transform='rotateY('+(x*8-7)+'deg) rotateX('+(-y*6+3)+'deg)'});visual.addEventListener('mouseleave',()=>tilt.style.transform='rotateY(-8deg) rotateX(4deg)')}
+const form=document.getElementById('form');form.addEventListener('submit',async e=>{e.preventDefault();const d=new FormData(form),b=new URLSearchParams();for(const[k,v]of d.entries())b.append(k,v);try{const r=await fetch('/',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:b.toString()});if(!r.ok)throw 0;form.reset();document.getElementById('success').style.display='block'}catch(_){alert('Deploy on Netlify to receive inquiry submissions.')}});
