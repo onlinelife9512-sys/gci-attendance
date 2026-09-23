@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#07080d">
+<title>Deipverse — Digital Systems</title>
+<meta name="description" content="Premium websites, automation, dashboards and AI tools for modern businesses.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<nav class="nav glass">
+  <a class="brand" href="#top"><span class="mark">D</span><span>DEIPVERSE<small>DIGITAL SYSTEMS</small></span></a>
+  <div class="navlinks"><a href="#services">Services</a><a href="#process">Process</a><a href="#inquiry">Inquiry</a></div>
+  <a class="btn" href="#inquiry">Start a project</a>
+</nav>
+
+<main id="top">
+<section class="hero wrap">
+  <div class="copy reveal on">
+    <span class="kicker"><i></i> Building practical digital systems</span>
+    <h1>Not just websites. <em>Working business systems.</em></h1>
+    <p>Premium websites, automation, dashboards, QR ordering and practical AI tools — designed around how your business actually works.</p>
+    <div class="actions"><a class="btn big" href="#inquiry">Tell us your idea →</a><a class="ghost big" href="#services">Explore services</a></div>
+    <div class="proofs"><span>Mobile-first</span><span>Custom UX</span><span>Automation-ready</span><span>Business-focused</span></div>
+  </div>
+  <div class="visual reveal on">
+    <div class="dashboard glass" id="tilt">
+      <div class="dashTop"><span>BUSINESS OVERVIEW</span><b>● LIVE</b></div>
+      <h3>Control everything simply.</h3>
+      <div class="metrics"><div><small>New inquiries</small><strong>24</strong><span class="bars"><i></i><i></i><i></i><i></i><i></i></span></div><div><small>Automation</small><strong>Live</strong><small>Running smoothly</small></div></div>
+      <div class="activity"><span>● Website inquiry received</span><span>● WhatsApp follow-up triggered</span><span>● Dashboard updated</span></div>
+    </div>
+    <div class="float f1 glass"><small>LIVE WORKFLOW</small><b>Inquiry → Follow-up ✓</b></div>
+    <div class="float f2 glass"><small>EXPERIENCE</small><b>Clean. Fast. Focused.</b></div>
+  </div>
+</section>
+
+<section id="services" class="wrap section">
+  <div class="head reveal"><span>SERVICES</span><h2>Built to solve a business problem — not add more complexity.</h2><p>Choose one focused service or combine multiple systems into one streamlined workflow.</p></div>
+  <div class="grid">
+    <article class="card glass wide reveal"><i>✦</i><h3>Premium Business Websites</h3><p>Modern, responsive websites with strong positioning, conversion-focused UX and a premium brand feel.</p><small>Landing pages • Business sites • Funnels →</small></article>
+    <article class="card glass reveal"><i>↻</i><h3>Automation Systems</h3><p>Connect forms, sheets, notifications, follow-ups and recurring processes.</p><small>Forms • WhatsApp flows • Workflows →</small></article>
+    <article class="card glass reveal"><i>◈</i><h3>AI Tools</h3><p>Practical AI for internal assistants, document workflows and task-specific tools.</p><small>Assistants • Smart tools →</small></article>
+    <article class="card glass reveal"><i>⌁</i><h3>Dashboards</h3><p>Clean admin panels for attendance, inventory, finance, customers and reports.</p><small>Admin • Reports • Data →</small></article>
+    <article class="card glass reveal"><i>⌗</i><h3>Custom Software</h3><p>Focused systems built around your real process when generic software does not fit.</p><small>Custom workflow • Web app →</small></article>
+  </div>
+</section>
+
+<section id="process" class="wrap section">
+  <div class="process glass reveal">
+    <div><span class="eyebrow">PROCESS</span><h2>From rough idea to a usable system.</h2><p>You do not need technical language. Explain the problem and the result you want.</p></div>
+    <div class="steps">
+      <div><b>01</b><span><strong>Understand</strong><small>Your business, pain point and goal</small></span></div>
+      <div><b>02</b><span><strong>Structure</strong><small>Only the required features and flows</small></span></div>
+      <div><b>03</b><span><strong>Design + Build</strong><small>Modern UX with working logic</small></span></div>
+      <div><b>04</b><span><strong>Launch</strong><small>Test, deploy and improve</small></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="inquiry" class="wrap section">
+  <div class="contact glass reveal">
+    <div class="contactCopy"><span class="eyebrow">START A PROJECT</span><h2>Tell us what you want to improve.</h2><p>Share your goal in simple words. We will structure the digital solution around it.</p><ul><li>No technical knowledge required</li><li>Clear, focused feature planning</li><li>Mobile-first and scalable build</li></ul></div>
+    <form name="project-inquiry" method="POST" data-netlify="true" netlify-honeypot="bot-field" id="form">
+      <input type="hidden" name="form-name" value="project-inquiry"><input class="hide" name="bot-field">
+      <div class="row"><label>Your name<input name="name" required placeholder="Your name"></label><label>WhatsApp number<input name="phone" required placeholder="+91 XXXXX XXXXX"></label></div>
+      <div class="row"><label>Business<input name="business" placeholder="Business name"></label><label>Service<select name="service" required><option value="">Select service</option><option>Business Website</option><option>Automation</option><option>AI Tool</option><option>Dashboard / Admin Panel</option><option>QR Ordering System</option><option>Custom Software</option></select></label></div>
+      <label>What do you want to build?<textarea name="requirement" required placeholder="Tell us your requirement..."></textarea></label>
+      <button class="btn submit" type="submit">Send project inquiry →</button>
+      <div id="success">Inquiry submitted successfully.</div>
+    </form>
+  </div>
+</section>
+</main>
+
+<footer class="wrap"><span>© <span id="year"></span> Deipverse — Digital Systems</span><a href="#top">Back to top ↑</a></footer>
+<script src="./app.js"></script>
+</body>
+</html>
